@@ -1,12 +1,17 @@
-# Ignore build folders
+# Build outputs
 bin/
 obj/
 .vs/
 
-# User/project-specific files
+# User-specific
 *.user
 *.suo
 *.http
 
-# Ignore test/output files
+# Large test files
+kargo/*.rar
+kargo/*.zip
 *.log
+
+# Ignore everything under UploadedFiles if exists
+**/UploadedFiles/
