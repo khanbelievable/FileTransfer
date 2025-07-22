@@ -5,13 +5,13 @@ A high-speed, chunk-based file transfer system built with **ASP.NET 8**, designe
 ## 📁 Project Structure
 
 FileTransfer/
-│
-├── FileTransferSender/ → ASP.NET Web API for sending files
-├── FileTransferReceiver/ → ASP.NET Web API for receiving and assembling files
-├── FileTransferUI/ → Web interface to trigger uploads and track progress
-├── README.md → This file
-├── .gitignore → Ignore compiled and irrelevant files
-└── FileTransfer.sln (optional, includes all three projects)
+│   
+├── FileTransferSender/ → ASP.NET Web API for sending files   
+├── FileTransferReceiver/ → ASP.NET Web API for receiving and assembling files   
+├── FileTransferUI/ → Web interface to trigger uploads and track progress   
+├── README.md → This file   
+├── .gitignore → Ignore compiled and irrelevant files   
+└── FileTransfer.sln (optional, includes all three projects)   
 
 
 ## ⚙️ Purpose
