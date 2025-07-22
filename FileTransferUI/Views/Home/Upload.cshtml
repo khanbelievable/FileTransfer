@@ -1,0 +1,124 @@
+﻿@{
+    ViewData["Title"] = "Dosya Gönder";
+}
+
+<h2>Dosya Gönder</h2>
+
+<form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="file" id="fileInput" required />
+    <video id="uploadVideo" src="/media/sender.mp4" preload="auto" muted style="width: 400px;"></video>
+    <button type="submit">Gönder</button>
+</form>
+
+<div id="progressContainer" style="display:none; margin-top: 20px;">
+    <div style="width: 100%; background-color: #eee; height: 30px; border: 1px solid #ccc;">
+        <div id="progressBar" style="width: 0%; height: 100%; background-color: limegreen; text-align: center; line-height: 30px; color: black;">0%</div>
+    </div>
+</div>
+
+<div id="resultMessage" style="margin-top: 10px;"></div>
+
+<script>
+    const video = document.getElementById("uploadVideo");
+    const chargingStartSecond = 6;
+    let videoTotalDuration = 0;
+    let uploadStartTime = null;
+    let pollingInterval = null;
+    let lastPolledPercent = 0;
+
+    video.onloadedmetadata = () => {
+        videoTotalDuration = video.duration;
+    };
+
+    document.getElementById("uploadForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const file = document.getElementById("fileInput").files[0];
+        if (!file) {
+            alert("Dosya seçilmedi.");
+            return;
+        }
+
+        resetProgressBar();
+        document.getElementById("progressContainer").style.display = "block";
+        document.getElementById("resultMessage").textContent = "";
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:5001/api/uploads", true);
+
+        uploadStartTime = Date.now();
+
+        // Video başlat
+        video.currentTime = 0;
+        video.playbackRate = 1;
+        video.muted = true;
+        video.play().catch(err => console.error("Video play error:", err));
+
+        xhr.send(formData);
+        startPolling(file.name); // 👈 eski sistemde çalışan yer
+
+        xhr.onload = () => {
+            clearInterval(pollingInterval);
+            document.getElementById("resultMessage").textContent = "Yükleme tamamlandı!";
+        };
+
+        xhr.onerror = () => {
+            document.getElementById("resultMessage").textContent = "Bağlantı hatası oluştu.";
+        };
+    });
+
+    function startPolling(filename) {
+        console.log("Polling başlatıldı:", filename);
+
+        pollingInterval = setInterval(() => {
+            fetch(`http://localhost:5001/api/progress/${encodeURIComponent(filename)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Progress alınamadı");
+                    return response.json();
+                })
+                .then(data => {
+                    const percent = Math.round((data.uploaded / data.total) * 100);
+                    updateProgressBar(percent);
+
+                    // Dinamik video hızı
+                    if (percent > 0 && percent < 100 && video.currentTime >= chargingStartSecond) {
+                        const elapsedSeconds = (Date.now() - uploadStartTime) / 1000;
+                        const avgSpeed = data.uploaded / elapsedSeconds;
+                        const remainingBytes = data.total - data.uploaded;
+                        const estRemainingSeconds = remainingBytes / avgSpeed;
+
+                        const remainingVideoTime = videoTotalDuration - video.currentTime;
+                        const newPlaybackRate = remainingVideoTime / estRemainingSeconds;
+                        video.playbackRate = Math.max(0.25, Math.min(newPlaybackRate, 4));
+                        console.log("Yeni playback rate:", video.playbackRate.toFixed(2));
+                    }
+
+                    lastPolledPercent = percent;
+
+                    if (percent >= 100) {
+                        clearInterval(pollingInterval);
+                        console.log("Upload tamamlandı, polling durdu.");
+                    }
+                })
+                .catch(err => {
+                    console.log("Polling error:", err);
+                    clearInterval(pollingInterval);
+                });
+        }, 1000);
+    }
+
+    function updateProgressBar(percent) {
+        const progressBar = document.getElementById("progressBar");
+        progressBar.style.width = percent + "%";
+        progressBar.textContent = percent + "%";
+    }
+
+    function resetProgressBar() {
+        const progressBar = document.getElementById("progressBar");
+        progressBar.style.width = "0%";
+        progressBar.textContent = "0%";
+    }
+</script>

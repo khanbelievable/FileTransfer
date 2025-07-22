@@ -1,0 +1,12 @@
+# Ignore build folders
+bin/
+obj/
+.vs/
+
+# User/project-specific files
+*.user
+*.suo
+*.http
+
+# Ignore test/output files
+*.log
