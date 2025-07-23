@@ -19,7 +19,7 @@ FileTransfer/
 - 🚀 Maximize transfer speed using chunked uploads
 - 📦 File is split into chunks (e.g. 5MB each)
 - 🔁 Chunks are uploaded asynchronously with configurable concurrency
-- 🎥 UI includes live progress bar + video synced with real-time transfer speed
+- 🎥 UI includes live progress bar + video synced with real-time transfer speed (video speed currently doesn't sync)
 - 🔓 Security is not a priority — raw performance is the focus
 
 ## 🛠 How It Works
